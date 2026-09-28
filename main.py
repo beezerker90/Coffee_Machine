@@ -1,8 +1,11 @@
 import csv
-import os
 
-produkte = {"Water": 2.0, "Oat milk": 2.5, "Coffee": 3.0, "Latte": 5.0, "Espresso": 3.0, "Cappucino": 4.5}
-ressourcen = {"Water": 2000, "Oat milk": 1000, "Coffee": 500}
+ressourcen = {
+    "Water": 2000,
+    "Oat milk": 1000,
+    "Coffee": 500
+}
+
 ingredienten = {
     "Water": {"Water": 200},
     "Oat milk": {"Oat milk": 100},
@@ -11,11 +14,29 @@ ingredienten = {
     "Espresso": {"Water": 50, "Coffee": 20},
     "Cappucino": {"Water": 250, "Oat milk": 100, "Coffee": 25}
 }
-muenzfach = {"0.1": 10, "0.2": 10, "0.5": 10, "1.0": 10, "2.0": 10}  # Anzahl der Münzen im Fach
+
+muenzfach = {  # Anzahl der Münzen im Fach
+    "0.1": 10,
+    "0.2": 10,
+    "0.5": 10,
+    "1.0": 10,
+    "2.0": 10
+} 
+
 muenzen = [0.1, 0.2, 0.5, 1.0, 2.0]  # Akzeptierte Münzen in Euro
+
 strom = True
-umsatz = 0.0
 erfolg = True
+
+umsatz = 0.0
+produkte = {}
+
+with open("prices.csv", "r", newline="", encoding="utf-8") as datei:
+    reader = csv.reader(datei)
+    next(reader)  # Überspringe die Kopfzeile
+    for row in reader:
+        produkt, preis = row
+        produkte[produkt.strip()] = float(preis) # Entferne führende und nachfolgende Leerzeichen und konvertiere den Preis in einen float
 
 while strom:
     einwurf=0;
@@ -84,17 +105,51 @@ while strom:
 
             print(f"Hier ist Ihr {auswahl}. Guten Appetit!")
     elif auswahl.lower() == "report":
+        # Erstelle eine CSV-Datei mit den aktuellen Ressourcen, Münzen und Umsatz
         with open("report.csv", "w", newline="", encoding="utf-8") as datei:
             writer = csv.writer(datei)
-            writer.writerows([["Zutat", "Menge"]] + [[zutat, menge] for zutat, menge in ressourcen.items()])
-            writer.writerows([[muenze, muenzfach[muenze]] for muenze in muenzfach])
+            writer.writerow(["Zutat", "Menge"])
+            for zutat, menge in ressourcen.items():
+                writer.writerow([zutat, menge])
+
+            writer.writerow(["Münze", "Anzahl"])
+            for muenze, anzahl in muenzfach.items():
+                writer.writerow([muenze, anzahl])
+
+            writer.writerow(["Umsatz", umsatz])
+    elif auswahl.lower() == "replenish":
+        # CSV-Datei mit den aktuellen Ressourcen, Münzen und Umsatz erstellen
+        with open("replenish.csv", "w", newline="", encoding="utf-8") as datei:
+            writer = csv.writer(datei)
+            writer.writerow(["Zutat", "Menge"])
+            for zutat, menge in ressourcen.items():
+                writer.writerow([zutat, menge])
+
+            writer.writerow(["Münze", "Anzahl"])
+            for muenze, anzahl in muenzfach.items():
+                writer.writerow([muenze, anzahl])
+
             writer.writerow(["Umsatz", umsatz])
 
-        print("Ressourcenbericht:")
-        for zutat, menge in ressourcen.items():
-            print(f"- {zutat}: {menge}")
-        print(f"Umsatz: {umsatz} Euro")
+        # Ressourcen und Münzen auffüllen
+        ressourcen = {zutat: 2000 if zutat == "Water" else 1000 if zutat == "Oat milk" else 500 for zutat in ressourcen}
+        muenzfach = {muenze: 10 for muenze in muenzfach}
+        print("Die Kaffeemaschine wurde aufgefüllt.")
     elif auswahl.lower() == "off":
+        # csv datei weiterschreiben mit aktuellen ressourcen, muenzen und umsatz
+        with open("off.csv", "a", newline="", encoding="utf-8") as datei:
+            writer = csv.writer(datei)
+            writer.writerow([])
+            writer.writerow(["Zutat", "Menge"])
+            for zutat, menge in ressourcen.items():
+                writer.writerow([zutat, menge])
+
+            writer.writerow(["Münze", "Anzahl"])
+            for muenze, anzahl in muenzfach.items():
+                writer.writerow([muenze, anzahl])
+                
+            writer.writerow(["Umsatz", umsatz])
+
         print("Kaffeemaschine wird ausgeschaltet.")
         strom = False
     else:
